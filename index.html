@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>PCP Elevolt | Controle de Produção</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="container topbar__content">
+      <div class="brand">
+        <img class="brand__logo" src="imagens/logo.png" alt="Elevolt" />
+        <div>
+          <p class="eyebrow">PCP · Elevolt</p>
+          <h1>Controle de Produção</h1>
+        </div>
+      </div>
+      <div class="topbar__meta">
+        <span id="dataAtualizacao">Carregando...</span>
+        <span class="status-online">Online</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="container main">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">Painel gerencial</p>
+        <h2>Visão rápida das OS's em carteira</h2>
+      </div>
+      <div class="hero__actions">
+        <button class="btn btn--secondary" id="btnLimparFiltros">Limpar filtros</button>
+        <button class="btn btn--primary" id="btnExportarCsv">Exportar visão filtrada</button>
+      </div>
+    </section>
+
+    <section class="kpis" aria-label="Indicadores do painel">
+      <article class="kpi kpi--blue">
+        <span class="kpi__label">OSs em carteira</span>
+        <strong id="totalOss">0</strong>
+        <small>Total listado no CSV</small>
+      </article>
+      <article class="kpi kpi--green">
+        <span class="kpi__label">Em produção</span>
+        <strong id="emProducao">0</strong>
+        <small>OSs em execução</small>
+      </article>
+      <article class="kpi kpi--red">
+        <span class="kpi__label">Atrasadas</span>
+        <strong id="atrasadas">0</strong>
+        <small>Entrega anterior a hoje</small>
+      </article>
+      <article class="kpi kpi--orange">
+        <span class="kpi__label">Entrega em 7 dias</span>
+        <strong id="entregaSemana">0</strong>
+        <small>Atenção no curto prazo</small>
+      </article>
+      <article class="kpi kpi--cyan">
+        <span class="kpi__label">Liberado faturamento</span>
+        <strong id="liberadoFaturamento">0</strong>
+        <small>Prontas para faturar</small>
+      </article>
+    </section>
+
+    <section class="panel filters">
+      <div class="field field--wide">
+        <label for="busca">Buscar</label>
+        <input id="busca" type="search" placeholder="OS, cliente, produto, status, observação..." autocomplete="off" />
+      </div>
+      <div class="field">
+        <label for="filtroStatus">Status</label>
+        <select id="filtroStatus">
+          <option value="">Todos</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="filtroPrazo">Prazo</label>
+        <select id="filtroPrazo">
+          <option value="">Todos</option>
+          <option value="ATRASADA">Atrasadas</option>
+          <option value="7_DIAS">Entrega em até 7 dias</option>
+          <option value="NO_PRAZO">No prazo</option>
+          <option value="CONCLUIDA">Concluídas</option>
+        </select>
+      </div>
+      <div class="field">
+        <label for="ordenacao">Ordenar por</label>
+        <select id="ordenacao">
+          <option value="entrega-asc">Entrega mais próxima</option>
+          <option value="entrega-desc">Entrega mais distante</option>
+          <option value="cliente-asc">Cliente A-Z</option>
+          <option value="os-asc">OS crescente</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- ===== NOVO: PONTO 7 - Painel de gargalos ===== -->
+    <section class="panel gargalos" id="painelGargalos">
+      <div class="gargalos__header">
+        <div>
+          <p class="eyebrow">Diagnóstico</p>
+          <h3>Onde as OS estão paradas agora</h3>
+          <p class="gargalos__sub">
+            <span id="totalParadas">0</span> OSs em aberto · agrupadas por motivo de parada
+          </p>
+        </div>
+      </div>
+      <div class="gargalos__lista" id="listaGargalos"></div>
+    </section>
+
+    <section class="panel table-panel">
+      <div class="table-panel__header">
+        <div>
+          <h3>Lista de OSs</h3>
+          <p><span id="contadorFiltrado">0</span> OSs exibidas</p>
+        </div>
+        <p class="hint">Clique em uma linha para ver o resumo da OS.</p>
+      </div>
+
+      <div id="alerta" class="alert hidden"></div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>OS</th>
+              <th>Cliente</th>
+              <th>Produto</th>
+              <th>Qtde</th>
+              <th>Lançamento</th>
+              <th>Entrega</th>
+              <th>Status</th>
+              <th>Prazo</th>
+              <th>Parada</th>
+              <th>Observação</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaOSs"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="modalOS" class="modal">
+    <div class="modal__header">
+      <div>
+        <p class="eyebrow">Detalhes da OS</p>
+        <h3 id="modalTitulo">OS</h3>
+      </div>
+      <button class="modal__close" id="fecharModal" aria-label="Fechar">×</button>
+    </div>
+    <div class="modal__body" id="modalConteudo"></div>
+  </dialog>
+
+  <footer class="footer">
+    <span>Elevolt</span> · Controle interno de produção · Desenvolvido por Matheus Fuccio
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
